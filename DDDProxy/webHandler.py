@@ -16,7 +16,7 @@ import httplib
 class DDDProxyBaseHandler(BaseHandler):
 	
 	def getRequestHost(self):
-		addrPort = parserUrlAddrPort(self.request.protocol + "://" + self.request.host);
+		addrPort = parserUrlAddrPort(f"{self.request.protocol}://{self.request.host}");
 		return addrPort[0]
 	def get_template_path(self):
 		return "./template/";
@@ -31,7 +31,7 @@ class pacHandler(DDDProxyBaseHandler):
 class helpHandler(DDDProxyBaseHandler):
 	@tornado.web.asynchronous
 	def get(self):
-		pacAddrOrigin = "%s://%s/pac"%(self.request.protocol,self.request.host)
+		pacAddrOrigin = f"{self.request.protocol}://{self.request.host}/pac"
 		self.render("fq_temp.html", info="", pacAddr=pacAddrOrigin,pacAddrOrigin=pacAddrOrigin)
 class adminHandler(DDDProxyBaseHandler):
 	@tornado.web.asynchronous
@@ -46,7 +46,6 @@ class adminHandler(DDDProxyBaseHandler):
 					domain = getDomainName(addr)
 					if domainConfig.config.addDomain(domain):
 						domainConfig.config.save()
-				self.redirect("/admin", False)
 			else:
 				domain = self.get_argument("domain",default="").encode('utf8')
 				ok = False
@@ -58,19 +57,20 @@ class adminHandler(DDDProxyBaseHandler):
 					ok = domainConfig.config.openDomain(domain)
 				if ok:
 					domainConfig.config.save()
-				self.redirect("/admin", False)
+
+			self.redirect("/admin", False)
 	
 	@tornado.web.asynchronous
 	def post(self):
 		postJson = json.loads(self.request.body)
 		data = None
 		opt = postJson["opt"]
-		if opt=="domainList":
-			data=domainConfig.config.getDomainListWithAnalysis()
-		elif opt == "analysisDataList":
+		if opt == "analysisDataList":
 			data=domainConfig.analysis.getAnalysisData(postJson["domain"],postJson["startTime"])
 		elif opt == "domainDataList":
 			data = domainConfig.analysis.getTodayDomainAnalysis()
+		elif opt == "domainList":
+			data=domainConfig.config.getDomainListWithAnalysis()
 		self.set_header("Content-Type", "application/json")
 		self.write(json.dumps(data))
 		self.finish()

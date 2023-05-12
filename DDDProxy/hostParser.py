@@ -14,9 +14,8 @@ def parserUrlAddrPort(path):
 
 def getDomainName(host):
 	hostMatch = re.compile('^(.*?)\.*([^\.]+)(\.(?:net\.cn|com\.cn|com\.hk|co\.jp|org\.cn|[^\.\d]{2,3}))$')
-	match = hostMatch.match(host)
-	if match:
+	if match := hostMatch.match(host):
 		hostGroup = match.groups()
 		if len(hostGroup) > 2:
-			host = "%s%s" % (hostGroup[1], hostGroup[2])
+			host = f"{hostGroup[1]}{hostGroup[2]}"
 	return host

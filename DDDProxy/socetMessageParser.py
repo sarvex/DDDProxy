@@ -13,14 +13,12 @@ class socetMessageParser():
 	def messageStatus(self):
 		method, path, protocol = self.httpMessage()
 		if protocol:
-			headers = self.httpHeaders()
-			if headers:
-				if method == "POST":
-					if "content-length" in headers and (int(headers["content-length"]) <= len(self.httpBodyStr())):
-						return 1
-				else:
+			if headers := self.httpHeaders():
+				if method != "POST":
 					return 1
 
+				if "content-length" in headers and (int(headers["content-length"]) <= len(self.httpBodyStr())):
+					return 1
 		return 0
 
 	def messageData(self):
@@ -38,14 +36,10 @@ class socetMessageParser():
 		return "", "", ""
 	def httpHeadersStr(self):
 		method, path, protocol = self.httpMessage()
-		if not protocol:
-			return ""
-		return self.message.split("\r\n\r\n", 1)[0]
+		return "" if not protocol else self.message.split("\r\n\r\n", 1)[0]
 	def httpBodyStr(self):
 		method, path, protocol = self.httpMessage()
-		if not protocol:
-			return ""
-		return self.message.split("\r\n\r\n", 1)[1]
+		return "" if not protocol else self.message.split("\r\n\r\n", 1)[1]
 	def httpHeaders(self):
 		header = self.httpHeadersStr()
 		headers = {}

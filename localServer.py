@@ -25,14 +25,13 @@ settings = {
 def printError():
 	logging.error(sys.exc_info())
 	logging.error(traceback.format_exc())
-	pass
 class statusPage(BaseHandler):
 	@tornado.web.asynchronous
 	def get(self):
 		opt = self.get_argument("opt",default="")
 		if opt:
 			opt = opt.encode("utf8")
-			
+
 		if opt == "remoteProxy":
 			status = "connected"
 			try:
@@ -58,9 +57,7 @@ class statusPage(BaseHandler):
 			self.write({"status":status})
 		else:
 			currentThread = threading.enumerate()
-			threadList = []
-			for t in currentThread:
-				threadList.append({"name":t.name})
+			threadList = [{"name":t.name} for t in currentThread]
 			data={"threading:":threadList}
 			self.write(data)
 		self.finish()

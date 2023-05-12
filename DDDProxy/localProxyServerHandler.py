@@ -44,15 +44,19 @@ class proxyServerHandler(ServerHandler):
 					socetParser.putMessage(tmp)
 					if socetParser.messageStatus():
 						self.httpMessage = socetParser.httpMessage()
-						host, port = hostParser.parserUrlAddrPort(self.httpMessage[1] if self.httpMessage[0] != "CONNECT" else "https://" + self.httpMessage[1])
+						host, port = hostParser.parserUrlAddrPort(
+							self.httpMessage[1]
+							if self.httpMessage[0] != "CONNECT"
+							else f"https://{self.httpMessage[1]}"
+						)
 						threading.currentThread().name = "%d-%s-%s:%d-send"%(self.threadid,self.addr,host,port)
 						self.hostPort = (host, port)
-						
+
 						ipAddr = re.match("(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})", host)
 						foundIp = False
 						if ipAddr:
 							ipAddr = ipAddr.groups()
-							mathIp = "%s.%s.%s" % (ipAddr[0], ipAddr[1], ipAddr[2]);
+							mathIp = f"{ipAddr[0]}.{ipAddr[1]}.{ipAddr[2]}";
 							for i in self.blockHost:
 								if i.startswith(mathIp):
 									foundIp = True
@@ -60,11 +64,11 @@ class proxyServerHandler(ServerHandler):
 						if foundIp or host in self.blockHost:
 							baseServer.log(3, self.threadid, "block", host)
 							break
-						
+
 						baseServer.log(1, "}}}}", self.addr, self.httpMessage)
 						self.domainAnalysisAddData("connect", 1)
 						socetParser = None
-		
+
 				self.domainAnalysisAddData("incoming", len(tmp))
 				self.markActive()
 		except socket.timeout:
@@ -74,7 +78,7 @@ class proxyServerHandler(ServerHandler):
 
 # 		sendPack.end(self.remoteSocket)
 		baseServer.log(1, self.threadid, "}}}}", ">")
-		
+
 		self.close()
 		
 	def serverToSource(self):
@@ -122,12 +126,14 @@ class proxyServerHandler(ServerHandler):
 			pass
 		self.remoteSocket = None
 	def AgreeConnIp(self, ipAddr=''):
-		if ipAddr.startswith("127.0.0.")  or ipAddr.startswith("10.0.") or ipAddr.startswith("192.168."):
-			return True;
-		return False;
+		return bool(
+			ipAddr.startswith("127.0.0.")
+			or ipAddr.startswith("10.0.")
+			or ipAddr.startswith("192.168.")
+		)
 	def run(self):
 		if not self.AgreeConnIp(self.addr):
-			baseServer.log(2, self.threadid, "not agree ip %s connect!" % (self.addr))
+			baseServer.log(2, self.threadid, f"not agree ip {self.addr} connect!")
 			return;
 
 		baseServer.log(1, self.threadid, "..... threadid start")

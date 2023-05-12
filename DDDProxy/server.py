@@ -14,12 +14,12 @@ class baseServer(object):
 		self.handler = handler
 		self.server = None
 		self.conn()
-		self.theadList = list()
+		self.theadList = []
 	def conn(self):
-		if not self.server is None:
+		if self.server is not None:
 			return
-		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  
+		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.server.bind((self.host, self.port))
 		self.server.listen(1024)  
 	@staticmethod
@@ -38,7 +38,7 @@ class baseServer(object):
 			hand.run()
 		except:
 			self.log(3, sys.exc_info(), traceback.format_exc())
-		if not hand is None:
+		if hand is not None:
 			self.theadList.remove(hand)
 	
 	def exratInfo(self):
@@ -91,22 +91,21 @@ class DDDProxySocketMessage:
 		while True:
 			dataLenPack = ""
 			while len(dataLenPack)!=4:
-				pack = conn.recv(4-len(dataLenPack));
-				if not pack:
+				if pack := conn.recv(4 - len(dataLenPack)):
+					dataLenPack += pack
+
+				else:
 					return
-				dataLenPack += pack
-			
 			dataLen = struct.unpack("!i",dataLenPack)[0]
 			if dataLen == -1:
 				break;
 			compressed = ""
 			while dataLen != len(compressed):
-				pack = conn.recv(dataLen-len(compressed));
-				if not pack:
+				if pack := conn.recv(dataLen - len(compressed)):
+					compressed += pack
+				else:
 					return
-				compressed += pack
-			decompress = compressed#zlib.decompress(compressed)
-			yield decompress
+			yield compressed
 	@staticmethod
 	def end(conn):
 		conn.send(struct.pack("!i",-1))
@@ -116,10 +115,7 @@ class DDDProxySocketMessage:
 		DDDProxySocketMessage.end(conn)
 	@staticmethod
 	def recvOne(conn):
-		value = ""
-		for data in DDDProxySocketMessage.recv(conn):
-			value += data
-		return value;
+		return "".join(DDDProxySocketMessage.recv(conn))
 class ServerHandler(object):
 	def __init__(self,conn,addr,threadid):
 		self.conn = conn
@@ -136,7 +132,7 @@ class ServerHandler(object):
 			self.lastActivePosition = lastActivePosition
 	def close(self):
 		try:
-			if not self.conn is None:
+			if self.conn is not None:
 				self.conn.shutdown(0)
 		except:
 			pass

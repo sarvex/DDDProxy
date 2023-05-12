@@ -38,14 +38,16 @@ class remoteServerHandler(ServerHandler):
 		return "%s->%s	%s" % (self.localProxyMark, ServerHandler.info(self), self.httpMessage)
 	def check(self):
 		timeNumber = struct.unpack("i", self.localProxy.recv(4))[0]
-		
+
 		checkA = self.localProxy.recv(32)
 		checkB = hashlib.md5("%s%d" % (DDDProxyConfig.remoteServerAuth, timeNumber)).hexdigest()
 		timeRange = 3600
 		baseServer.log(1, self.threadid, "check:", checkA, checkB, timeNumber, timeRange, time.time())
-		if timeNumber < time.time() - timeRange or timeNumber > time.time() + timeRange or checkA != checkB:
-			return False
-		return True
+		return (
+			timeNumber >= time.time() - timeRange
+			and timeNumber <= time.time() + timeRange
+			and checkA == checkB
+		)
 	def openOrignConn(self, path):
 		if self.orignConn is not None:
 			return
@@ -66,16 +68,16 @@ class remoteServerHandler(ServerHandler):
 					hasData = True
 					break;
 				self.markActive("recv header")
-			
+
 			if not hasData:
 				return False
-			
+
 			self.method, path, protocol = socetParser.httpMessage()
 			if self.method:
 				baseServer.log(2, "httpMessage", self.threadid, self.method, path, protocol)
 			if self.method == "CONNECT":
 				self.httpData = False
-				self.openOrignConn("https://" + path);
+				self.openOrignConn(f"https://{path}");
 				baseServer.log(1, self.threadid, "CONNECT ", path)
 				DDDProxySocketMessage.send(self.localProxy, "HTTP/1.1 200 OK\r\n\r\n")
 			else:
@@ -84,7 +86,7 @@ class remoteServerHandler(ServerHandler):
 				self.openOrignConn(path);
 				baseServer.log(1, self.threadid, ">>>>>", socetParser.messageData())
 				self.orignConn.send(socetParser.messageData())
-				
+
 			self.lock.put("ok")
 			for data in DDDProxySocketMessage.recv(self.localProxy):
 				self.orignConn.send(data);

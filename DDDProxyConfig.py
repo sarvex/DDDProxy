@@ -5,6 +5,7 @@ Created on 2015年1月11日
 
 @author: dx.wang
 '''
+
 import os
 import ssl
 import threading
@@ -32,13 +33,13 @@ cacheSize = 1024 * 2
 
 baseDir = dirname(__file__)
 
-SSLLocalCertPath =  baseDir+"/tmp/cert.local.pem"
-SSLCertPath =  baseDir+"/tmp/cert.remote.pem"
-SSLKeyPath =  baseDir+"/tmp/key.remote.pem"
+SSLLocalCertPath = f"{baseDir}/tmp/cert.local.pem"
+SSLCertPath = f"{baseDir}/tmp/cert.remote.pem"
+SSLKeyPath = f"{baseDir}/tmp/key.remote.pem"
 
-pacDomainConfig =  baseDir+"/tmp/DDDProxy.domain.json"
+pacDomainConfig = f"{baseDir}/tmp/DDDProxy.domain.json"
 
-domainAnalysisConfig =  baseDir+"/tmp/DDDProxy.domainAnalysis.json"
+domainAnalysisConfig = f"{baseDir}/tmp/DDDProxy.domainAnalysis.json"
 
 createCertLock = 	threading.RLock()
 def fetchRemoteCert():

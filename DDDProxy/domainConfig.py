@@ -34,12 +34,8 @@ class domainConfig():
 		fp.close()
 
 	def getDomainOpenedList(self):
-		pacList = []
 		domainList = self.getDomainListWithAnalysis()
-		for domain in domainList:
-			if domain["open"]:
-				pacList.append(domain["domain"])
-		return pacList
+		return [domain["domain"] for domain in domainList if domain["open"]]
 	def getDomainListWithAnalysis(self):
 		data = [{"domain":key,"open":value["open"],"connectTimes":value["connectTimes"]} for (key,value) in self.domainList.items()]
 		def sortDomainList(x,y):
@@ -62,7 +58,7 @@ class domainConfig():
 			return True
 		return False
 	def addDomain(self,domain):
-		if not domain in self.domainList:
+		if domain not in self.domainList:
 			self.domainList[domain] = {"connectTimes":0,"open":True}
 			return True
 		return False
@@ -194,34 +190,33 @@ class domainAnalysis():
 				domainData = self.domainAnalysisCache.pop()
 				if not domainData:
 					continue
-				
+
 				if domainData.connect:
 					config.domainConnectTimes(domainData.domain,domainData.connect)
-				
+
 				data = self.domainAnalysis[domainData.timeMark][domainData.fromIp][domainData.domain]
-				if not "connect" in data:
+				if "connect" not in data:
 					data["connect"] = 0
 					data["incoming"] = 0
 					data["outgoing"] = 0
-				
+
 				data["connect"] += domainData.connect
 				data["incoming"] += domainData.incoming
 				data["outgoing"] += domainData.outgoing
-				
-				
+
+
 				dataExpireTime = time.time()-86400*7 #删除7天之前的数据
 				for (k,d) in self.domainAnalysis.items():
 					if(k < dataExpireTime):
 						del self.domainAnalysis[k]
 						break
-				
+
 				domainAnalysisJson = json.dumps(self.domainAnalysis)
 				open(DDDProxyConfig.domainAnalysisConfig, "wt").write(domainAnalysisJson)
 				"""use mysql on my office"""
-	
+
 			except:
 				logging.error(("analysis error!", sys.exc_info(), traceback.format_exc()))
-				pass
 
 analysis = domainAnalysis()
 
